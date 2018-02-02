@@ -16,6 +16,7 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
+import django_cas_ng.views
 
 from accounts import views as accounts_views
 from boards import views
@@ -26,6 +27,10 @@ urlpatterns = [
     url(r'^login/$', auth_views.LoginView.as_view(template_name='login.html'),
         name='login'),
     url(r'^logout/$', auth_views.LogoutView.as_view(), name='logout'),
+    url(r'^caslogin/$', django_cas_ng.views.login,name='cas_ng_login'),
+    url(r'^logout/$', django_cas_ng.views.logout, name='cas_ng_logout'),
+    url(r'^callback/$', django_cas_ng.views.callback,
+        name='cas_ng_proxy_callback'),
     url(r'^reset/$', 
         auth_views.PasswordResetView.as_view(
             template_name='password_reset.html',
