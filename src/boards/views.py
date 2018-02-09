@@ -7,8 +7,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, Http404
-from .forms import NewTopicForm, PostForm
-from .models import Board, Topic, Post
+from .forms import NewTopicForm, PostForm, SettingsForm
+from .models import Board, Topic, Post, Profile
 
 # Create your views here.
 
@@ -143,6 +143,9 @@ class TopicListView(ListView):
                 '-last_updated').annotate(replies=Count('posts')-1)
         return queryset
 
+    def get_paginate_by(self, queryset):
+        return self.request.user.profile.topics_per_page
+
 
 
 class PostListView(ListView):
@@ -169,3 +172,26 @@ class PostListView(ListView):
                 pk=self.kwargs.get('topic_pk'))
         queryset = self.topic.posts.order_by('created_at')
         return queryset
+
+
+@login_required
+def update_profile(request):
+    if not request.user.profile:
+        Profile.objects.create(user=request.user)
+        request.user.save()
+
+    if request.method == 'POST':
+        settings_form = SettingsForm(request.POST,
+                instance=request.user.profile)
+        if settings_form.is_valid():
+            request.user.save()
+            settings_form.save()
+            return redirect('boards_settings')
+
+    else:
+        settings_form = SettingsForm(instance=request.user.profile)
+
+    return render(request, 'boards_settings.html', {'form': settings_form, 
+                                                    })
+
+

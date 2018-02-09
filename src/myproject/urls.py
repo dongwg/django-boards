@@ -59,6 +59,8 @@ urlpatterns = [
         name='password_change_done'),
     url(r'settings/account/$', 
         accounts_views.UserUpdateView.as_view(), name='my_account'),
+    url(r'settings/boards/$', 
+        views.update_profile, name='boards_settings'),
 
     url(r'^boards/(?P<pk>\d+)/$', views.TopicListView.as_view(), name='board_topics'),
     url(r'^boards/(?P<pk>\d+)/new/$', views.new_topic, name='new_topic'),

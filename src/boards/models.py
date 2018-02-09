@@ -4,6 +4,8 @@ from django.utils.html import mark_safe
 from markdown import markdown
 from django.contrib.auth.models import User
 from django.utils.text import Truncator
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 # Create your models here.
 class Board(models.Model):
@@ -40,6 +42,7 @@ class Topic(models.Model):
     board = models.ForeignKey(Board, related_name='topics')
     starter = models.ForeignKey(User, related_name='topics')
     views = models.PositiveIntegerField(default=0)
+    topics_per_page = 20
 
 
     def __str__(self):
@@ -48,7 +51,7 @@ class Topic(models.Model):
 
     def get_page_count(self):
         count = self.posts.count()
-        pages = count / 20
+        pages = count / self.topics_per_page
         return math.ceil(pages)
 
 
@@ -63,6 +66,9 @@ class Topic(models.Model):
         if self.has_many_pages(count):
             return range(1, 5)
         return range(1, count + 1)
+
+    def set_topics_per_page(self, ipp):
+        self.topics_per_page = ipp
 
 
 class Post(models.Model):
@@ -83,3 +89,25 @@ class Post(models.Model):
 
     def get_message_as_markdown(self):
         return mark_safe(markdown(self.message, safe_mode='escape'))
+
+
+class Profile(models.Model):
+
+    '''Docstring for Profile. '''
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    topics_per_page = models.PositiveIntegerField(default=20)
+    location = models.CharField(max_length=30, blank=True)
+    birth_date = models.DateField(null=True, blank=True)
+
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    instance.profile.save()
+
+User.profile = property(lambda u: Profile.objects.get_or_create(user=u)[0])

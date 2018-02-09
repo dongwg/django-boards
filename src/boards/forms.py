@@ -1,5 +1,6 @@
 from django import forms
-from .models import Topic, Post
+from django.contrib.auth.models import User
+from .models import Topic, Post, Profile
 
 class NewTopicForm(forms.ModelForm):
     message = forms.CharField(
@@ -19,3 +20,8 @@ class PostForm(forms.ModelForm):
         model = Post
         fields = ['message', ]
 
+
+class SettingsForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ('topics_per_page', 'location', 'birth_date')
