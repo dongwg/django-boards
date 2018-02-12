@@ -144,7 +144,10 @@ class TopicListView(ListView):
         return queryset
 
     def get_paginate_by(self, queryset):
-        return self.request.user.profile.topics_per_page
+        if self.request.user.is_authenticated():
+            return self.request.user.profile.topics_per_page
+        else:
+            return self.paginate_by
 
 
 
